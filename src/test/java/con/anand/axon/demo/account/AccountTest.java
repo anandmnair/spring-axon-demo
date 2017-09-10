@@ -30,15 +30,15 @@ public class AccountTest {
 	@Test
 	public void testWithdrawMoney(){
 		fixtureConfiguration.given(new AccountCreatedEvent("AC1001", 1000L))
-			.when(new WithdrawMoneyCommand("AC1001", 600L))
-			.expectEvents(new MoneyWithdrawnEvent("AC1001", 600L, -600L))
+			.when(new WithdrawMoneyCommand("AC1001","TXN1", 600L))
+			.expectEvents(new MoneyWithdrawnEvent("AC1001","TXN1", 600L, -600L))
 			;
 	}
 	
 	@Test
 	public void testWithdrawMoneyCauseOverlimit(){
 		fixtureConfiguration.given(new AccountCreatedEvent("AC1001", 1000L))
-			.when(new WithdrawMoneyCommand("AC1001", 1001L))
+			.when(new WithdrawMoneyCommand("AC1001","TXN1", 1001L))
 			.expectNoEvents()
 			.expectException(OverdraftLimitExceedException.class)
 			;

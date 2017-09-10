@@ -10,6 +10,8 @@ import org.axonframework.spring.stereotype.Aggregate;
 
 import con.anand.axon.demo.account.coreapi.AccountCreatedEvent;
 import con.anand.axon.demo.account.coreapi.CreateAccountCommand;
+import con.anand.axon.demo.account.coreapi.DepositMoneyCommand;
+import con.anand.axon.demo.account.coreapi.MoneyDepositEvent;
 import con.anand.axon.demo.account.coreapi.MoneyWithdrawnEvent;
 import con.anand.axon.demo.account.coreapi.WithdrawMoneyCommand;
 import con.anand.axon.demo.account.exception.OverdraftLimitExceedException;
@@ -36,11 +38,16 @@ public class Account {
 	@CommandHandler
 	public void handle(WithdrawMoneyCommand command) {
 		if(balance + overdraftLimit >= command.getAmount()) {
-			apply(new MoneyWithdrawnEvent(command.getAccountId(), command.getAmount(), balance - command.getAmount()));
+			apply(new MoneyWithdrawnEvent(command.getAccountId(),command.getTransactionId(), command.getAmount(), balance - command.getAmount()));
 		}
 		else {
 			throw new OverdraftLimitExceedException("cannot wothdrawn..");
 		}
+	}
+	
+	@CommandHandler
+	public void handle(DepositMoneyCommand command) {
+		apply(new MoneyDepositEvent(command.getAccountId(), command.getTransactionId(), command.getAmount(), balance + command.getAmount()));
 	}
 	
 	@EventSourcingHandler
@@ -55,4 +62,8 @@ public class Account {
 		this.balance=moneyWithdrawnEvent.getBalance();
 	}
 	
+	@EventSourcingHandler
+	public void on(MoneyDepositEvent moneyDepositEvent) {
+		this.balance=moneyDepositEvent.getBalance();
+	}
 }

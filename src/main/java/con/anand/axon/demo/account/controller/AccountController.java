@@ -14,6 +14,8 @@ import con.anand.axon.demo.account.coreapi.WithdrawMoneyCommand;
 
 import static org.axonframework.commandhandling.GenericCommandMessage.asCommandMessage;
 
+import java.util.UUID;
+
 
 @RestController
 @RequestMapping("/account")
@@ -50,7 +52,8 @@ public class AccountController {
 	@GetMapping("/withdraw/{accountId}/{amount}")
 	public String withdrawMoney(@PathVariable("accountId") String accountId, @PathVariable("amount") Long amount) {
 		final StringBuilder resultBuilder = new StringBuilder();
-		commandBus.dispatch(asCommandMessage(new WithdrawMoneyCommand(accountId, amount)), new CommandCallback<Object, Object>() {
+		String txnId=UUID.randomUUID().toString();
+		commandBus.dispatch(asCommandMessage(new WithdrawMoneyCommand(accountId,txnId, amount)), new CommandCallback<Object, Object>() {
 			@Override
 			public void onSuccess(CommandMessage<? extends Object> commandMessage, Object result) {
 				resultBuilder.append("money withdrawn successfully");

@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class MoneyWithdrawnEvent {
+public class MoneyDepositEvent {
 
 	private String accountId;
 

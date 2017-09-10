@@ -7,7 +7,7 @@ import lombok.Value;
 
 @Data
 @Value
-public class WithdrawMoneyCommand {
+public class DepositMoneyCommand {
 
 	@TargetAggregateIdentifier
 	private String accountId;
@@ -15,5 +15,4 @@ public class WithdrawMoneyCommand {
 	private String transactionId;
 
 	private Long amount;
-
 }
