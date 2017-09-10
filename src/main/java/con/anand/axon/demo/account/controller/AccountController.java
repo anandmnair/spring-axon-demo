@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import con.anand.axon.demo.account.coreapi.CreateAccountCommand;
+import con.anand.axon.demo.account.coreapi.RequestMoneyTransferCommand;
 import con.anand.axon.demo.account.coreapi.WithdrawMoneyCommand;
+import lombok.extern.slf4j.Slf4j;
 
 import static org.axonframework.commandhandling.GenericCommandMessage.asCommandMessage;
 
@@ -19,6 +21,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/account")
+@Slf4j
 public class AccountController {
 
 	@Autowired
@@ -27,7 +30,10 @@ public class AccountController {
 	@GetMapping("/load")
 	public String load() {
 		createAccount("AC1001", 500L);
-		withdrawMoney("AC1001", 250L);
+		createAccount("AC1002", 500L);
+		transferMoney("AC1001", "AC1002", 100L);
+		//withdrawMoney("AC1001", 150L);
+		
 		//withdrawMoney("AC1001", 251L);
 		return "loaded..";
 	}
@@ -44,8 +50,10 @@ public class AccountController {
 			@Override
 			public void onFailure(CommandMessage<? extends Object> commandMessage, Throwable cause) {
 				resultBuilder.append("account creation failed").append(" :: ").append(cause.getMessage());
+				log.error("createAccount :: {}" ,resultBuilder.toString(), cause);
 			}
 		});
+		log.info("createAccount :: {}" ,resultBuilder.toString());
 		return resultBuilder.toString();
 	}
 	
@@ -62,8 +70,31 @@ public class AccountController {
 			@Override
 			public void onFailure(CommandMessage<? extends Object> commandMessage, Throwable cause) {
 				resultBuilder.append("money withdrawal failed").append(" :: ").append(cause.getMessage());
+				log.error("withdrawMoney :: {}" ,resultBuilder.toString(), cause);
 			}
 		});
+		log.info("withdrawMoney :: {}" ,resultBuilder.toString());
 		return resultBuilder.toString();
 	}
+	
+	@GetMapping("/transfer/{source}/{target}/{amount}")
+	public String transferMoney(@PathVariable("source") String sourceAccountId,@PathVariable("target") String targetAccountId, @PathVariable("amount") Long amount) {
+		final StringBuilder resultBuilder = new StringBuilder();
+		String txnId=UUID.randomUUID().toString();
+		commandBus.dispatch(asCommandMessage(new RequestMoneyTransferCommand(sourceAccountId,targetAccountId,txnId, amount)), new CommandCallback<Object, Object>() {
+			@Override
+			public void onSuccess(CommandMessage<? extends Object> commandMessage, Object result) {
+				resultBuilder.append("money tranfered successfully");
+			}
+
+			@Override
+			public void onFailure(CommandMessage<? extends Object> commandMessage, Throwable cause) {
+				resultBuilder.append("money tranfer failed").append(" :: ").append(cause.getMessage());
+				log.error("transferMoney :: {}" ,resultBuilder.toString(), cause);
+			}
+		});
+		log.info("transferMoney :: {}" ,resultBuilder.toString());
+		return resultBuilder.toString();
+	}
+	
 }

@@ -1,3 +1,9 @@
 security:
   basic:
     enabled: false
+    
+spring:
+  h2:
+    console:
+      enabled: true 
+      path: /h2   

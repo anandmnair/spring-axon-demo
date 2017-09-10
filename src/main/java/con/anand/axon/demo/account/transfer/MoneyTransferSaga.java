@@ -1,9 +1,13 @@
 package con.anand.axon.demo.account.transfer;
 
+import java.util.UUID;
+
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventhandling.saga.EndSaga;
 import org.axonframework.eventhandling.saga.SagaEventHandler;
+import org.axonframework.eventhandling.saga.SagaLifecycle;
 import org.axonframework.eventhandling.saga.StartSaga;
+import org.axonframework.spring.stereotype.Saga;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import con.anand.axon.demo.account.coreapi.CompleteMoneyTransferCommand;
@@ -14,20 +18,24 @@ import con.anand.axon.demo.account.coreapi.MoneyTransferRequestedEvent;
 import con.anand.axon.demo.account.coreapi.MoneyWithdrawnEvent;
 import con.anand.axon.demo.account.coreapi.WithdrawMoneyCommand;
 
-
+@Saga
 public class MoneyTransferSaga {
 	
 	@Autowired
 	private transient CommandGateway commandGateway;
 	
 	private String targetAccount;
+
+	private String transactionId;
 	
 	
 	@StartSaga
 	@SagaEventHandler(associationProperty="transferId")
 	public void on(MoneyTransferRequestedEvent event) {
 		this.targetAccount=event.getTargetAccount();
-		commandGateway.send(new WithdrawMoneyCommand(event.getSourceAccount(), event.getTransferId(), event.getAmount()));
+		transactionId=UUID.randomUUID().toString();
+		SagaLifecycle.associateWith("transactionId",transactionId);
+		commandGateway.send(new WithdrawMoneyCommand(event.getSourceAccount(), transactionId, event.getAmount()));
 	}
 
 	@SagaEventHandler(associationProperty="transactionId", keyName="transferId")
