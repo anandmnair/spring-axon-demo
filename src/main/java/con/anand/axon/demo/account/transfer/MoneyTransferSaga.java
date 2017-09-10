@@ -28,24 +28,27 @@ public class MoneyTransferSaga {
 
 	private String transactionId;
 	
+	private String transferId;
+
 	
 	@StartSaga
 	@SagaEventHandler(associationProperty="transferId")
 	public void on(MoneyTransferRequestedEvent event) {
 		this.targetAccount=event.getTargetAccount();
+		this.transferId=event.getTransferId();
 		transactionId=UUID.randomUUID().toString();
 		SagaLifecycle.associateWith("transactionId",transactionId);
 		commandGateway.send(new WithdrawMoneyCommand(event.getSourceAccount(), transactionId, event.getAmount()));
 	}
 
-	@SagaEventHandler(associationProperty="transactionId", keyName="transferId")
+	@SagaEventHandler(associationProperty="transactionId")
 	public void on(MoneyWithdrawnEvent event) {
 		commandGateway.send(new DepositMoneyCommand(this.targetAccount, event.getTransactionId(), event.getAmount()));
 	}
 	
-	@SagaEventHandler(associationProperty="transactionId", keyName="transferId")
+	@SagaEventHandler(associationProperty="transactionId")
 	public void on(MoneyDepositEvent event) {
-		commandGateway.send(new CompleteMoneyTransferCommand(event.getTransactionId()));
+		commandGateway.send(new CompleteMoneyTransferCommand(transferId));
 	}
 	
 	@EndSaga
